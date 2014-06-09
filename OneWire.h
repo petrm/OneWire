@@ -104,8 +104,7 @@
 #define DIRECT_WRITE_LOW(base, mask)    ((*(base+8+1)) = (mask))          //LATXCLR  + 0x24
 #define DIRECT_WRITE_HIGH(base, mask)   ((*(base+8+2)) = (mask))          //LATXSET + 0x28
 
-#elif defined(__LM4F120H5QR__)
-//#define PIN_TO_BASEREG(pin)             (IO_REG_TYPE *)(portBASERegister(digitalPinToPort(pin)))
+#elif defined(__LM4F120H5QR__) || defined(__TM4C123GH6PM__)
 #define PIN_TO_BASEREG(pin)             (portBASERegister(digitalPinToPort(pin)))
 #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
 #define IO_REG_TYPE uint32_t
