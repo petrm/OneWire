@@ -104,6 +104,24 @@
 #define DIRECT_WRITE_LOW(base, mask)    ((*(base+8+1)) = (mask))          //LATXCLR  + 0x24
 #define DIRECT_WRITE_HIGH(base, mask)   ((*(base+8+2)) = (mask))          //LATXSET + 0x28
 
+#elif defined(__LM4F120H5QR__)
+//#define PIN_TO_BASEREG(pin)             (IO_REG_TYPE *)(portBASERegister(digitalPinToPort(pin)))
+#define PIN_TO_BASEREG(pin)             (portBASERegister(digitalPinToPort(pin)))
+#define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
+#define IO_REG_TYPE uint32_t
+#define IO_REG_ASM
+#define DIRECT_READ(base, mask)         ROM_GPIOPinRead((uint32_t)base, mask)
+#define DIRECT_MODE_INPUT(base, mask)   ROM_GPIOPinTypeGPIOInput((uint32_t)base, mask)
+#define DIRECT_MODE_OUTPUT(base, mask)  ROM_GPIOPinTypeGPIOOutputOD((uint32_t)base, mask)
+#define DIRECT_WRITE_LOW(base, mask)    ROM_GPIOPinWrite((uint32_t)base, mask, 0)
+#define DIRECT_WRITE_HIGH(base, mask)   ROM_GPIOPinWrite((uint32_t)base, mask, mask)
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+#ifndef pgm_read_byte
+#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+#endif
+
 #else
 #error "Please define I/O register types here"
 #endif

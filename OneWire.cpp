@@ -151,8 +151,8 @@ uint8_t OneWire::reset(void)
 	} while ( !DIRECT_READ(reg, mask));
 
 	noInterrupts();
-	DIRECT_WRITE_LOW(reg, mask);
 	DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
+	DIRECT_WRITE_LOW(reg, mask);
 	interrupts();
 	delayMicroseconds(480);
 	noInterrupts();
@@ -161,6 +161,7 @@ uint8_t OneWire::reset(void)
 	r = !DIRECT_READ(reg, mask);
 	interrupts();
 	delayMicroseconds(410);
+
 	return r;
 }
 
@@ -172,21 +173,24 @@ void OneWire::write_bit(uint8_t v)
 {
 	IO_REG_TYPE mask=bitmask;
 	volatile IO_REG_TYPE *reg IO_REG_ASM = baseReg;
+    
+    DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
+    DIRECT_WRITE_HIGH(reg, mask);
 
 	if (v & 1) {
 		noInterrupts();
 		DIRECT_WRITE_LOW(reg, mask);
-		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
 		delayMicroseconds(10);
 		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
+        DIRECT_MODE_INPUT(reg, mask);
 		interrupts();
 		delayMicroseconds(55);
 	} else {
 		noInterrupts();
 		DIRECT_WRITE_LOW(reg, mask);
-		DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
 		delayMicroseconds(65);
 		DIRECT_WRITE_HIGH(reg, mask);	// drive output high
+        DIRECT_MODE_INPUT(reg, mask);
 		interrupts();
 		delayMicroseconds(5);
 	}
@@ -197,18 +201,18 @@ void OneWire::write_bit(uint8_t v)
 // more certain timing.
 //
 uint8_t OneWire::read_bit(void)
-{
+{ 
 	IO_REG_TYPE mask=bitmask;
 	volatile IO_REG_TYPE *reg IO_REG_ASM = baseReg;
-	uint8_t r;
-
+	uint8_t r = 0;
 	noInterrupts();
 	DIRECT_MODE_OUTPUT(reg, mask);
 	DIRECT_WRITE_LOW(reg, mask);
 	delayMicroseconds(3);
+	//DIRECT_WRITE_HIGH(reg, mask);
 	DIRECT_MODE_INPUT(reg, mask);	// let pin float, pull up will raise
 	delayMicroseconds(10);
-	r = DIRECT_READ(reg, mask);
+	if(DIRECT_READ(reg, mask)) r = 1;
 	interrupts();
 	delayMicroseconds(53);
 	return r;
@@ -378,9 +382,9 @@ uint8_t OneWire::search(uint8_t *newAddr)
          cmp_id_bit = read_bit();
 
          // check for no devices on 1-wire
-         if ((id_bit == 1) && (cmp_id_bit == 1))
+         if ((id_bit == 1) && (cmp_id_bit == 1)){
             break;
-         else
+         } else
          {
             // all devices coupled have 0 or 1
             if (id_bit != cmp_id_bit)
